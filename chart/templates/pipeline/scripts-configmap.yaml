@@ -1,0 +1,17 @@
+{{- if .Values.pipeline.enabled }}
+{{/*
+Pipeline definition + scheduling script for the in-cluster setup Job. The
+canonical copies live in pipelines/; `make sync-notebook` refreshes these.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "quickstart.name" . }}-pipeline-scripts
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+data:
+  validmind_pipeline.py: |-
+{{ .Files.Get "files/pipeline/validmind_pipeline.py" | indent 4 }}
+  schedule_pipeline.py: |-
+{{ .Files.Get "files/pipeline/schedule_pipeline.py" | indent 4 }}
+{{- end }}

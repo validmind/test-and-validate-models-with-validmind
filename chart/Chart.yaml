@@ -1,0 +1,9 @@
+apiVersion: v2
+name: test-and-validate-models-with-validmind
+description: Validate ML models with ValidMind on OpenShift AI — a pre-loaded workbench, ValidMind connection, and a scheduled validation pipeline.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: ValidMind
+    url: https://validmind.com

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="560" fill="#f8fafc"/>
+
+  <!-- OpenShift AI project boundary -->
+  <rect x="24" y="52" width="620" height="484" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="44" y="82" font-size="15" font-weight="600" fill="#334155">OpenShift AI — data science project</text>
+
+  <!-- Connection secret -->
+  <rect x="52" y="230" width="180" height="96" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="142" y="264" font-size="13.5" font-weight="600" fill="#78350f" text-anchor="middle">ValidMind connection</text>
+  <text x="142" y="284" font-size="12" fill="#78350f" text-anchor="middle">Secret · VM_API_*</text>
+  <text x="142" y="304" font-size="11" fill="#92400e" text-anchor="middle">(dashboard connection type)</text>
+
+  <!-- Workbench -->
+  <rect x="330" y="108" width="270" height="120" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="465" y="136" font-size="13.5" font-weight="600" fill="#0c4a6e" text-anchor="middle">Workbench (JupyterLab)</text>
+  <text x="465" y="158" font-size="12" fill="#0c4a6e" text-anchor="middle">quickstart notebook, seeded by</text>
+  <text x="465" y="175" font-size="12" fill="#0c4a6e" text-anchor="middle">init container · S3 or synthetic data</text>
+  <text x="465" y="197" font-size="12" fill="#0369a1" text-anchor="middle">train → run tests → log results</text>
+
+  <!-- Pipeline -->
+  <rect x="330" y="268" width="270" height="120" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+  <text x="465" y="296" font-size="13.5" font-weight="600" fill="#0c4a6e" text-anchor="middle">Data science pipeline</text>
+  <text x="465" y="318" font-size="12" fill="#0c4a6e" text-anchor="middle">same steps, headless (KFP v2)</text>
+  <text x="465" y="335" font-size="12" fill="#0c4a6e" text-anchor="middle">recurring run (cron) · on-demand</text>
+  <text x="465" y="352" font-size="12" fill="#0369a1" text-anchor="middle">HTTP: POST /apis/v2beta1/runs</text>
+
+  <!-- Model serving + TrustyAI -->
+  <rect x="330" y="428" width="270" height="88" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="465" y="456" font-size="13.5" font-weight="600" fill="#4c1d95" text-anchor="middle">Deployed model + TrustyAI</text>
+  <text x="465" y="476" font-size="12" fill="#4c1d95" text-anchor="middle">live fairness / drift / data-health</text>
+  <text x="465" y="493" font-size="12" fill="#4c1d95" text-anchor="middle">metrics from served inferences</text>
+
+  <!-- validmind-trustyai note -->
+  <rect x="52" y="428" width="180" height="88" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="142" y="456" font-size="13" font-weight="600" fill="#334155" text-anchor="middle">validmind-trustyai</text>
+  <text x="142" y="476" font-size="11.5" fill="#475569" text-anchor="middle">10 tests: SPD, DIR, drift,</text>
+  <text x="142" y="493" font-size="11.5" fill="#475569" text-anchor="middle">coverage, schema, health</text>
+
+  <!-- ValidMind platform -->
+  <rect x="712" y="196" width="216" height="168" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="820" y="230" font-size="15" font-weight="700" fill="#14532d" text-anchor="middle">ValidMind Platform</text>
+  <text x="820" y="256" font-size="12.5" fill="#14532d" text-anchor="middle">model inventory</text>
+  <text x="820" y="276" font-size="12.5" fill="#14532d" text-anchor="middle">documentation &amp; validation</text>
+  <text x="820" y="296" font-size="12.5" fill="#14532d" text-anchor="middle">ongoing monitoring</text>
+  <text x="820" y="322" font-size="11.5" fill="#166534" text-anchor="middle">test results · figures · metrics</text>
+  <text x="820" y="340" font-size="11.5" fill="#166534" text-anchor="middle">over time · pass/fail evidence</text>
+
+  <!-- Arrows: secret -> workbench / pipeline -->
+  <path d="M 232 258 L 322 178" stroke="#64748b" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+  <text x="252" y="204" font-size="11" fill="#64748b">envFrom</text>
+  <path d="M 232 300 L 322 322" stroke="#64748b" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+  <text x="244" y="330" font-size="11" fill="#64748b">use_secret_as_env</text>
+
+  <!-- Arrows: workbench/pipeline -> platform -->
+  <path d="M 600 168 C 670 168 660 240 704 252" stroke="#0f766e" stroke-width="2" fill="none" marker-end="url(#arrowAccent)"/>
+  <path d="M 600 328 C 670 328 660 296 704 288" stroke="#0f766e" stroke-width="2" fill="none" marker-end="url(#arrowAccent)"/>
+  <text x="648" y="146" font-size="11.5" fill="#0f766e">vm.init() + result.log()</text>
+
+  <!-- Arrow: trustyai -> tests package -> platform -->
+  <path d="M 322 472 L 240 472" stroke="#64748b" stroke-width="1.8" fill="none" marker-end="url(#arrow)"/>
+  <text x="248" y="464" font-size="11" fill="#64748b">REST (bearer)</text>
+  <path d="M 142 428 C 142 380 300 400 465 396 C 640 392 700 372 712 348" stroke="#0f766e" stroke-width="2" fill="none" stroke-dasharray="5 4" marker-end="url(#arrowAccent)"/>
+  <text x="300" y="412" font-size="11.5" fill="#0f766e">run in notebook or pipeline → logged as evidence</text>
+</svg>

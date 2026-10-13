@@ -1,0 +1,24 @@
+{{/*
+Persistent home directory for the workbench. Kept on uninstall via the
+helm.sh/resource-policy annotation so notebook edits survive a re-install;
+delete the namespace (make cleanup-namespace) to remove it for good.
+*/}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "quickstart.workbenchName" . }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+    opendatahub.io/dashboard: "true"
+  annotations:
+    helm.sh/resource-policy: keep
+    openshift.io/display-name: ValidMind workbench storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.workbench.pvcSize | default "5Gi" }}
+  {{- with .Values.workbench.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}

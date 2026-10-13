@@ -1,0 +1,82 @@
+name: test-and-validate-models-with-validmind
+displayName: Test and validate models with ValidMind
+description: >-
+  Independent model validation on OpenShift AI: a workbench pre-loaded with a
+  ValidMind quickstart notebook, a reusable ValidMind connection type for the
+  dashboard, and a scheduled pipeline that re-runs validation tests and keeps
+  your model documentation current — including tests that read bias and drift
+  metrics from TrustyAI.
+version: "0.1.0"
+image: https://raw.githubusercontent.com/rh-ai-quickstart/test-and-validate-models-with-validmind/main/docs/images/architecture.svg
+
+maintainer:
+  name: ValidMind
+  github: rh-ai-quickstart
+
+repository: https://github.com/rh-ai-quickstart/test-and-validate-models-with-validmind
+
+deployment:
+  scope: project
+  chart:
+    type: repo
+    path: chart/
+    branch: main
+
+  configurableValues:
+    - key: validmind.apiKey
+      label: ValidMind API key
+      description: API key from your model's Getting Started page in the ValidMind Platform.
+      type: string
+      required: true
+    - key: validmind.apiSecret
+      label: ValidMind API secret
+      description: API secret from your model's Getting Started page.
+      type: string
+      required: true
+    - key: validmind.model
+      label: ValidMind model identifier
+      description: Inventory model identifier (cuid) that test results attach to.
+      type: string
+      required: true
+    - key: validmind.apiHost
+      label: ValidMind API host
+      description: Keep the default unless you run a private ValidMind instance.
+      type: string
+      default: https://app.prod.validmind.ai/api/v1/tracking
+      required: false
+    - key: workbench.image
+      label: Workbench image
+      description: Notebook image for the workbench (defaults to the standard data science image).
+      type: string
+      required: false
+    - key: workbench.pvcSize
+      label: Workbench storage size
+      description: Size of the persistent volume backing the workbench home directory.
+      type: string
+      default: 5Gi
+      required: false
+
+rbac:
+  requiredPermissions:
+    - apiGroup: kubeflow.org
+      resource: notebooks
+      verbs: [get, list, create, delete]
+    - apiGroup: ""
+      resource: persistentvolumeclaims
+      verbs: [get, list, create, delete]
+    - apiGroup: ""
+      resource: secrets
+      verbs: [get, list, create, delete]
+    - apiGroup: ""
+      resource: configmaps
+      verbs: [get, list, create, delete]
+
+prerequisites:
+  - Red Hat OpenShift AI 2.16 or later with workbenches enabled
+  - "CPU: 1 vCPU request / 2 vCPU limit (workbench)"
+  - "Memory: 4 GiB request / 8 GiB limit (workbench)"
+  - "Storage: one PersistentVolume for the workbench home directory (5 GiB default)"
+  - No GPU required
+  - A ValidMind account with a registered model (API key, secret, and model identifier)
+  - Optional — scheduled pipeline — a configured pipeline server (data science pipelines) in the project
+  - Optional — TrustyAI tests — TrustyAI enabled for the project with a deployed model

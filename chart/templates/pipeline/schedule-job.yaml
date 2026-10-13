@@ -1,0 +1,106 @@
+{{- if .Values.pipeline.enabled }}
+{{- $name := include "quickstart.name" . }}
+{{- $dspa := .Values.pipeline.dspaName }}
+{{/*
+ServiceAccount + RBAC for the setup Job. `edit` covers what the pipeline
+oauth proxy checks (get on the ds-pipeline route) plus reading the release's
+resources.
+*/}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}-pipeline-setup
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-pipeline-setup-edit
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}-pipeline-setup
+    namespace: {{ .Release.Namespace }}
+---
+{{/*
+Post-install/post-upgrade hook: waits for the pipeline server, compiles the
+pipeline, uploads it, and creates the recurring run via the KFP API.
+Re-run any time with:  make pipeline   (idempotent — replaces the schedule)
+*/}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-pipeline-schedule
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 1800
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}-pipeline-schedule
+    spec:
+      serviceAccountName: {{ $name }}-pipeline-setup
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-pipeline-server
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              HOST="https://ds-pipeline-{{ $dspa }}.{{ .Release.Namespace }}.svc.cluster.local:8443"
+              echo "Waiting for the pipeline server at $HOST ..."
+              until curl -ks -o /dev/null "$HOST/apis/v2beta1/healthz"; do
+                echo "  not up yet"; sleep 10
+              done
+              echo "Pipeline server is answering."
+      containers:
+        - name: schedule
+          image: {{ .Values.pipeline.jobImage }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              pip install --quiet "kfp>=2.7,<3" "kfp-kubernetes>=1.2"
+              mkdir -p /tmp/pipeline && cp /scripts/*.py /tmp/pipeline/
+              cd /tmp/pipeline
+              python validmind_pipeline.py
+              python schedule_pipeline.py --namespace "{{ .Release.Namespace }}" --dspa "{{ $dspa }}"
+          env:
+            - name: KFP_HOST
+              value: https://ds-pipeline-{{ $dspa }}.{{ .Release.Namespace }}.svc.cluster.local:8443
+            - name: PIPELINE_CRON
+              value: {{ .Values.pipeline.cron | quote }}
+            - name: VALIDMIND_SECRET_NAME
+              value: {{ include "quickstart.connectionName" . }}
+            {{- with .Values.pipeline.s3DataSecret }}
+            - name: S3_SECRET_NAME
+              value: {{ . | quote }}
+            {{- end }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ $name }}-pipeline-scripts
+{{- end }}

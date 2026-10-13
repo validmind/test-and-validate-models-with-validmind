@@ -1,0 +1,27 @@
+{{- if and .Values.pipeline.enabled .Values.pipeline.deployServer }}
+{{/*
+The project's pipeline server. OpenShift AI allows one DSPA per project —
+set pipeline.deployServer=false if the project already has one (the schedule
+job will use the existing server instead).
+*/}}
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
+kind: DataSciencePipelinesApplication
+metadata:
+  name: {{ .Values.pipeline.dspaName }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+spec:
+  dspVersion: v2
+  apiServer:
+    enableSamplePipeline: false
+  objectStorage:
+    externalStorage:
+      host: {{ printf "%s-minio.%s.svc.cluster.local:9000" (include "quickstart.name" .) .Release.Namespace }}
+      bucket: pipeline-artifacts
+      scheme: http
+      region: us-east-1
+      s3CredentialsSecret:
+        secretName: {{ printf "%s-minio" (include "quickstart.name" .) }}
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+{{- end }}

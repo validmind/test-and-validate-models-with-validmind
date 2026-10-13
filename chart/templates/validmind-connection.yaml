@@ -1,0 +1,25 @@
+{{/*
+The ValidMind credentials, shaped like an OpenShift AI *connection* so it
+shows up under Connections in the dashboard and can be attached to other
+workbenches, pipelines, or model servers in this project.
+
+The workbench consumes it via envFrom, so every key becomes an environment
+variable the ValidMind Library reads natively (vm.init() with no arguments).
+*/}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "quickstart.connectionName" . }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+    opendatahub.io/dashboard: "true"
+  annotations:
+    openshift.io/display-name: ValidMind
+    openshift.io/description: API credentials for the ValidMind Platform (model documentation and validation).
+    opendatahub.io/connection-type-ref: validmind
+type: Opaque
+stringData:
+  VM_API_HOST: {{ .Values.validmind.apiHost | default "https://app.prod.validmind.ai/api/v1/tracking" | quote }}
+  VM_API_KEY: {{ required "validmind.apiKey is required (ValidMind → Model Inventory → your model → Getting Started)" .Values.validmind.apiKey | quote }}
+  VM_API_SECRET: {{ required "validmind.apiSecret is required" .Values.validmind.apiSecret | quote }}
+  VM_API_MODEL: {{ required "validmind.model is required (the inventory model identifier / cuid)" .Values.validmind.model | quote }}

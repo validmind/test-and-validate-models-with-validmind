@@ -1,0 +1,72 @@
+# ValidMind credentials (required)
+#
+# From the ValidMind Platform: Model Inventory → your model → Getting Started
+# → "Copy snippet to clipboard". They land in a Secret shaped like an
+# OpenShift AI connection; the workbench and the scheduled pipeline read them
+# as environment variables (vm.init() picks them up with no arguments).
+validmind:
+  apiHost: https://app.prod.validmind.ai/api/v1/tracking
+  apiKey: ""
+  apiSecret: ""
+  model: ""
+
+# The workbench (OpenShift AI Notebook). The oauth sidecar, service account,
+# route, and TLS are injected by the OpenShift AI notebook controller — the
+# chart only writes the Notebook CR.
+workbench:
+  # Display name shown in the OpenShift AI dashboard.
+  displayName: ValidMind workbench
+  # Notebook image: an ImageStream tag in redhat-ods-applications. The
+  # imageSelection annotation lets the controller re-resolve the digest on
+  # clusters without the internal registry.
+  image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2025.1
+  imageSelection: s2i-generic-data-science-notebook:2025.1
+  imageDisplayName: Standard Data Science
+  # Shown as the workbench owner in the dashboard; cosmetic only.
+  username: ""
+  pvcSize: 5Gi
+  storageClassName: ""
+  resources:
+    requests:
+      cpu: "1"
+      memory: 4Gi
+    limits:
+      cpu: "2"
+      memory: 8Gi
+
+# Optional: the scheduled validation pipeline (Stage 2). Disabled by default
+# because it needs a pipeline server; enable with:  make pipeline
+# (equivalent to --set pipeline.enabled=true).
+pipeline:
+  enabled: false
+  # Deploy a pipeline server (DSPA) plus a small MinIO for pipeline artifacts.
+  # Set to false if the project already has a configured pipeline server —
+  # OpenShift AI allows only one per project.
+  deployServer: true
+  # Name of the DataSciencePipelinesApplication. The dashboard convention is
+  # "dspa"; the KFP API service becomes ds-pipeline-<name>.
+  dspaName: dspa
+  # 6-field cron (seconds first) for the recurring validation run.
+  # Default: 02:00 UTC every day.
+  cron: "0 0 2 * * *"
+  # Image for the post-install job that uploads the pipeline and creates the
+  # recurring run via the KFP API.
+  jobImage: registry.access.redhat.com/ubi9/python-312:latest
+  # Optional: name of an S3 connection Secret holding training data for the
+  # pipeline (same shape as a workbench S3 connection). Empty = the pipeline
+  # uses its synthetic-data fallback.
+  s3DataSecret: ""
+  minio:
+    # FS-mode MinIO build the data science pipelines operator uses for its own
+    # samples — buckets can be pre-created with a plain mkdir.
+    image: quay.io/opendatahub/minio:RELEASE.2019-08-14T20-37-41Z-license-compliance
+    storage: 10Gi
+    storageClassName: ""
+
+# Optional: TrustyAI-backed validation in the pipeline (Stage 4 package).
+# When a TrustyAI service runs in this project, the pipeline can also run the
+# trustyai.* tests. Leave url empty to use the in-cluster default
+# (https://trustyai-service.<namespace>.svc.cluster.local).
+trustyai:
+  enabled: false
+  url: ""

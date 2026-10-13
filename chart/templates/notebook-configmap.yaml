@@ -1,0 +1,15 @@
+{{/*
+Ships the quickstart notebook into the cluster. An init container on the
+workbench copies it into the persistent home directory on first start (it
+never overwrites — user edits win). The canonical copy lives in notebooks/;
+`make sync-notebook` refreshes chart/files/ from it.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "quickstart.name" . }}-notebooks
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+data:
+  validmind-openshift-ai-quickstart.ipynb: |-
+{{ .Files.Get "files/validmind-openshift-ai-quickstart.ipynb" | indent 4 }}

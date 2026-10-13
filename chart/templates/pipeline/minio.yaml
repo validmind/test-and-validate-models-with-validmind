@@ -1,0 +1,121 @@
+{{- if and .Values.pipeline.enabled .Values.pipeline.deployServer }}
+{{- $name := printf "%s-minio" (include "quickstart.name" .) }}
+{{/*
+Small MinIO instance backing the pipeline server's artifact store. The
+credentials Secret is generated once and preserved across upgrades (lookup),
+and doubles as a dashboard-visible S3 connection.
+
+The FS-mode MinIO image (the same one the pipelines operator uses for its
+samples) lets us create the bucket with a plain mkdir before the server starts.
+*/}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace $name }}
+{{- $secretKey := randAlphaNum 24 }}
+{{- if $existing }}
+{{- $secretKey = index $existing.data "AWS_SECRET_ACCESS_KEY" | b64dec }}
+{{- end }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/managed: "true"
+  annotations:
+    openshift.io/display-name: Pipeline artifacts (MinIO)
+    opendatahub.io/connection-type-ref: s3
+    opendatahub.io/connection-type: s3
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: minio
+  AWS_SECRET_ACCESS_KEY: {{ $secretKey | quote }}
+  AWS_S3_ENDPOINT: http://{{ $name }}.{{ .Release.Namespace }}.svc.cluster.local:9000
+  AWS_S3_BUCKET: pipeline-artifacts
+  AWS_DEFAULT_REGION: us-east-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.pipeline.minio.storage }}
+  {{- with .Values.pipeline.minio.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+        - name: minio
+          image: {{ .Values.pipeline.minio.image }}
+          command:
+            - /bin/sh
+            - -c
+            - mkdir -p /data/pipeline-artifacts && exec minio server /data
+          env:
+            - name: MINIO_ROOT_USER
+              value: minio
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}
+                  key: AWS_SECRET_ACCESS_KEY
+            # Older FS-mode images use the ACCESS/SECRET names.
+            - name: MINIO_ACCESS_KEY
+              value: minio
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}
+                  key: AWS_SECRET_ACCESS_KEY
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "quickstart.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ $name }}
+  ports:
+    - port: 9000
+      targetPort: 9000
+{{- end }}

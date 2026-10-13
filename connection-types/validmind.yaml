@@ -1,0 +1,65 @@
+# ValidMind connection type (API key) for the OpenShift AI dashboard.
+#
+# Apply once per cluster as an admin:  make connection-types
+# (On Open Data Hub, change the namespace to: opendatahub)
+#
+# Users then get "ValidMind" under Connections → Create connection in every
+# data science project. The connection injects the VM_* environment variables
+# the ValidMind Library reads natively, so vm.init() needs no arguments in any
+# workbench or pipeline the connection is attached to.
+#
+# Field types below are limited to what RHOAI 2.16 already supports
+# (short-text / hidden / uri, no deferInput), so this works on 2.16 → 3.x.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: validmind
+  namespace: redhat-ods-applications
+  labels:
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/connection-type: "true"
+  annotations:
+    openshift.io/display-name: ValidMind
+    openshift.io/description: >-
+      Connect to the ValidMind Platform for model documentation, validation,
+      and ongoing monitoring. Credentials come from your model's Getting
+      Started page (Model Inventory - select model - Getting Started).
+data:
+  category: '["Model governance"]'
+  fields: '[
+    {
+      "type": "section",
+      "name": "ValidMind API",
+      "description": "From the ValidMind Platform: Model Inventory → your model → Getting Started → Copy snippet to clipboard."
+    },
+    {
+      "type": "uri",
+      "name": "API host",
+      "description": "Keep the default unless you run a private ValidMind instance.",
+      "envVar": "VM_API_HOST",
+      "required": true,
+      "properties": {"defaultValue": "https://app.prod.validmind.ai/api/v1/tracking"}
+    },
+    {
+      "type": "hidden",
+      "name": "API key",
+      "envVar": "VM_API_KEY",
+      "required": true,
+      "properties": {}
+    },
+    {
+      "type": "hidden",
+      "name": "API secret",
+      "envVar": "VM_API_SECRET",
+      "required": true,
+      "properties": {}
+    },
+    {
+      "type": "short-text",
+      "name": "Model identifier",
+      "description": "The inventory model this connection documents (cuid, e.g. cmgzf6...).",
+      "envVar": "VM_API_MODEL",
+      "required": true,
+      "properties": {}
+    }
+  ]'

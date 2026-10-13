@@ -1,0 +1,79 @@
+# ValidMind connection type (OIDC device flow) — no secrets stored in the
+# cluster. The ValidMind Library's vm.init() opens a browser sign-in (OAuth
+# 2.0 device authorization flow) and uses a short-lived bearer token instead
+# of an API key/secret pair. Recommended for regulated environments that
+# don't allow long-lived credentials in namespace Secrets.
+#
+# Apply once per cluster as an admin:  make connection-types
+# (On Open Data Hub, change the namespace to: opendatahub)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: validmind-oidc
+  namespace: redhat-ods-applications
+  labels:
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/connection-type: "true"
+  annotations:
+    openshift.io/display-name: ValidMind (OIDC sign-in)
+    openshift.io/description: >-
+      Connect to the ValidMind Platform using an interactive OIDC device-flow
+      sign-in instead of stored API keys. No secret material is kept in the
+      cluster; each session authenticates in the browser.
+data:
+  category: '["Model governance"]'
+  fields: '[
+    {
+      "type": "section",
+      "name": "ValidMind API",
+      "description": "Endpoint and model this connection documents."
+    },
+    {
+      "type": "uri",
+      "name": "API host",
+      "envVar": "VM_API_HOST",
+      "required": true,
+      "properties": {"defaultValue": "https://app.prod.validmind.ai/api/v1/tracking"}
+    },
+    {
+      "type": "short-text",
+      "name": "Model identifier",
+      "description": "The inventory model this connection documents (cuid).",
+      "envVar": "VM_API_MODEL",
+      "required": true,
+      "properties": {}
+    },
+    {
+      "type": "section",
+      "name": "OIDC",
+      "description": "Values from your ValidMind organization admin. vm.init() runs the device authorization flow in the browser."
+    },
+    {
+      "type": "uri",
+      "name": "Issuer",
+      "envVar": "VM_OIDC_ISSUER",
+      "required": true,
+      "properties": {}
+    },
+    {
+      "type": "short-text",
+      "name": "Client ID",
+      "envVar": "VM_OIDC_CLIENT_ID",
+      "required": true,
+      "properties": {}
+    },
+    {
+      "type": "short-text",
+      "name": "Audience",
+      "envVar": "VM_OIDC_AUDIENCE",
+      "required": false,
+      "properties": {}
+    },
+    {
+      "type": "short-text",
+      "name": "Scope",
+      "envVar": "VM_OIDC_SCOPE",
+      "required": false,
+      "properties": {}
+    }
+  ]'

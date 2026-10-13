@@ -1,0 +1,26 @@
+# Local configuration — .env holds the ValidMind API credentials, never commit it.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Helm
+chart/*.tgz
+
+# Compiled pipeline output (regenerate with make pipeline-compile)
+pipelines/dist/
