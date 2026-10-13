@@ -22,7 +22,7 @@ endef
 # ValidMind credentials flow into a connection-shaped Secret the workbench
 # (and the scheduled pipeline) read as environment variables.
 HELM_VM_SETS = \
-	--set-string validmind.apiHost="$${VM_API_HOST:-https://api.prod.validmind.ai/api/v1/tracking}" \
+	--set-string validmind.apiHost="$${VM_API_HOST:-https://app.prod.validmind.ai/api/v1/tracking}" \
 	--set-string validmind.apiKey="$${VM_API_KEY}" \
 	--set-string validmind.apiSecret="$${VM_API_SECRET}" \
 	--set-string validmind.model="$${VM_API_MODEL}"
